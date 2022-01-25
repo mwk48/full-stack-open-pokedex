@@ -10,6 +10,8 @@ on:
 jobs:
   simple_deployment_pipeline:
     runs-on: ubuntu-18.04
+    env:
+      CONTAINS: ${{ contains(join(github.event.commits.*.message, ', '), 'skip') }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -30,7 +32,7 @@ jobs:
           wait-on-timeout: 300
           headless: true
       - name: heroku Deployment
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }} && ${{CONTAINS}}
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
@@ -41,7 +43,7 @@ jobs:
           rollbackonhealthcheckfailed: true
       - uses: actions/checkout@v2
       - name: Bump version and push tag
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' }} && ${{CONTAINS}}
         uses: anothrNick/github-tag-action@1.33.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
